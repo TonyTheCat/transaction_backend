@@ -1,16 +1,32 @@
 const express = require('express');
-const { appendFile } = require('fs');
-const klawSync = require('klaw-sync');
-const path = require('path');
 const cors = require('cors');
-const dummyTransactions = require('./constants/transactions.json');
+const fs = require('fs');
+const bodyParser = require('body-parser');
+const path = require('path');
+const dirPath = path.join(__dirname, '/constants/translations.json');
+const translations = require('./constants/translations.json');
 
 let app = express()
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.raw());
 app.options('*', cors());
 
-app.get('/transactions', function(req,res) {
-    res.send(dummyTransactions)
+app.get('/translations', function(req,res) {
+    res.send(translations)
+})
+
+app.post('/translations/add', function(req,res) {
+    console.log(translations, req.body);
+    const updatedTranslations = translations.map((item) => {
+        if (item.id === req.body.id) {
+            item.translate = req.body.translation
+        }
+        return item
+    })
+    fs.writeFile(dirPath, JSON.stringify(updatedTranslations), function writeJSON(err) {
+        if (err) return console.log(err);
+      });
 })
 
 app.listen('3000', '0.0.0.0', async () => {
